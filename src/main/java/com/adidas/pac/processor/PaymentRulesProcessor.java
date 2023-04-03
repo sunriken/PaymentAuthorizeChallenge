@@ -1,4 +1,4 @@
-package com.adidas.pac.processors;
+package com.adidas.pac.processor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

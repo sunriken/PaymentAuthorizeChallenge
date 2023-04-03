@@ -1,0 +1,23 @@
+package com.adidas.pac.model.input;
+
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Builder;
+import lombok.Value;
+
+@Builder
+@Value
+public class PaymentAuthorization {
+	@JsonProperty("payment-id")
+	private Long paymentId;
+	@JsonProperty("available-limit")
+	private Integer availableLimit;
+	@JsonProperty("cc")
+	private String cc;
+	@JsonProperty("amount")
+	private String amount;
+	@JsonProperty("time")
+	private LocalDateTime time;
+}

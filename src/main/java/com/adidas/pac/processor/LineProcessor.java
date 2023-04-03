@@ -1,4 +1,4 @@
-package com.adidas.pac.processors;
+package com.adidas.pac.processor;
 
 import java.io.IOException;
 
@@ -29,13 +29,15 @@ public class LineProcessor {
   public void process(String line) throws JsonParseException, JsonMappingException, IOException {
     JsonNode rootJsonNode = mapper.readTree(line);
 
-    JsonNode paymentRulesNode = rootJsonNode.get("payment-rules");
-    JsonNode paymentSessionNode = rootJsonNode.get("payment-session");
+    if (rootJsonNode != null) {
+      JsonNode paymentRulesNode = rootJsonNode.get("payment-rules");
+      JsonNode paymentSessionNode = rootJsonNode.get("payment-session");
 
-    if (paymentRulesNode != null) {
-      paymentRulesProcessor.process(paymentRulesNode);
-    } else if (paymentSessionNode != null) {
-      paymentSessionProcessor.process(paymentSessionNode);
+      if (paymentRulesNode != null) {
+        paymentRulesProcessor.process(paymentRulesNode);
+      } else if (paymentSessionNode != null) {
+        paymentSessionProcessor.process(paymentSessionNode);
+      }
     }
   }
 }
