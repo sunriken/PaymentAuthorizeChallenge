@@ -1,14 +1,18 @@
 package com.adidas.pac;
 
+import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 
-public class PaymentAuthorizeChallengeMainHighFequencySmallIntervalTest {
+@Isolated
+public class PaymentAuthorizeChallengeMainHighFrequencySmallIntervalTest {
   @Test
   public void testMainHighFrequencySmallInterval() {
     String data =
@@ -25,10 +29,17 @@ public class PaymentAuthorizeChallengeMainHighFequencySmallIntervalTest {
     InputStream stdin = System.in;
     try {
       System.setIn(new ByteArrayInputStream(data.getBytes()));
-      assertDoesNotThrow(
-          () -> {
-            PaymentAuthorizeChallengeMain.main(new String[0]);
-          });
+      String systemOutText =
+          tapSystemOut(
+              () -> {
+                assertDoesNotThrow(
+                    () -> {
+                      PaymentAuthorizeChallengeMain.main(new String[0]);
+                    });
+              });
+      assertTrue(systemOutText.contains("high-frequency-small-interval"));
+    } catch (Exception e) {
+      fail(e);
     } finally {
       System.setIn(stdin);
     }

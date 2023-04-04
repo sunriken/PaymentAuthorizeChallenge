@@ -27,9 +27,11 @@ public class PaymentAuthorizationProcessor {
   private static final String HIGH_FREQUENCY_SMALL_INTERVAL = "high-frequency-small-interval";
   private static final String DOUBLED_TRANSACTION = "doubled-transaction";
   private static final String UNKNOWN_ERROR = "unknown-error";
+
   private static final long MAX_MINUTES_BEFORE = 2;
   private static final long MAX_TRANSACTIONS_BEFORE = 3;
   private static final long MAX_SIMILAR_TRANSACTIONS = 1;
+
   private static final DateTimeFormatter formatter =
       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneId.systemDefault());
 

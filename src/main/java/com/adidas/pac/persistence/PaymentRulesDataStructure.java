@@ -21,7 +21,7 @@ public class PaymentRulesDataStructure {
     this.paymentRules = paymentRules;
   }
 
-  public PaymentRules get() {
+  public synchronized PaymentRules get() {
     return this.paymentRules;
   }
 }

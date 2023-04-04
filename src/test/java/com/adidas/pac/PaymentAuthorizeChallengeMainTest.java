@@ -1,16 +1,17 @@
 package com.adidas.pac;
 
+import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.parallel.Isolated;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Isolated
 public class PaymentAuthorizeChallengeMainTest {
 
   @Test
@@ -23,10 +24,17 @@ public class PaymentAuthorizeChallengeMainTest {
     InputStream stdin = System.in;
     try {
       System.setIn(new ByteArrayInputStream(data.getBytes()));
-      assertDoesNotThrow(
-          () -> {
-            PaymentAuthorizeChallengeMain.main(new String[0]);
-          });
+      String systemOutText =
+          tapSystemOut(
+              () -> {
+                assertDoesNotThrow(
+                    () -> {
+                      PaymentAuthorizeChallengeMain.main(new String[0]);
+                    });
+              });
+      assertTrue(systemOutText.contains("\"available-limit\":10"));
+    } catch (Exception e) {
+      fail(e);
     } finally {
       System.setIn(stdin);
     }
