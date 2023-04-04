@@ -25,7 +25,7 @@ public class PaymentSessionProcessor {
       PaymentRulesDataStructure.getInstance();
 
   private static final String PAYMENT_SESSION_ALREADY_INITIALIZED =
-      "paymentsession-already-initialized";
+      "payment-session-already-initialized";
   private static final String PAYMENT_RULES_NOT_INITIALIZED = "paymentrules-not-initialized";
   private static final String OTHER_ERROR = "other-error";
 
@@ -47,7 +47,8 @@ public class PaymentSessionProcessor {
       paymentAuthorizationProcessor.process(mapper, paymentSessionNode);
     } else {
       try {
-        if (paymentRulesDataStructure.get() == null) {
+        if (paymentRulesDataStructure.get() == null
+            || paymentRulesDataStructure.get().getMaxLimit() == null) {
           violations.add(PAYMENT_RULES_NOT_INITIALIZED);
         }
 

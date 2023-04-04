@@ -6,7 +6,9 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 
+@Isolated
 public class PaymentAuthorizeChallengeMainEmptyLinesTest {
   @Test
   public void testMainEmptyLines() {
