@@ -9,5 +9,5 @@ import lombok.Value;
 @Value
 public class PaymentRules {
   @JsonProperty("max-limit")
-  private Integer maxLimit;
+  private Long maxLimit;
 }

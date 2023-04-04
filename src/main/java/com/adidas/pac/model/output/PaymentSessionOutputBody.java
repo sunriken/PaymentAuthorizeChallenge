@@ -8,8 +8,9 @@ import lombok.Value;
 @Builder
 @Value
 public class PaymentSessionOutputBody {
-	@JsonProperty("payment-id")
-	private Long paymentId;
-	@JsonProperty("available-limit")
-	private Integer availableLimit;
+  @JsonProperty("payment-id")
+  private Long paymentId;
+
+  @JsonProperty("available-limit")
+  private Long availableLimit;
 }

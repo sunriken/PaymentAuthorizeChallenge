@@ -10,14 +10,15 @@ import lombok.Value;
 @Builder
 @Value
 public class PaymentAuthorization {
-	@JsonProperty("payment-id")
-	private Long paymentId;
-	@JsonProperty("available-limit")
-	private Integer availableLimit;
-	@JsonProperty("cc")
-	private String cc;
-	@JsonProperty("amount")
-	private String amount;
-	@JsonProperty("time")
-	private LocalDateTime time;
+  @JsonProperty("payment-id")
+  private Long paymentId;
+
+  @JsonProperty("cc")
+  private String cc;
+
+  @JsonProperty("amount")
+  private Long amount;
+
+  @JsonProperty("time")
+  private LocalDateTime time;
 }

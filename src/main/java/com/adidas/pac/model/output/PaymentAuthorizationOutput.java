@@ -8,8 +8,9 @@ import lombok.Value;
 @Builder
 @Value
 public class PaymentAuthorizationOutput {
-	@JsonProperty("payment-session")
-	private PaymentAuthorizationOutputBody paymentAuthorization;
-	@JsonProperty("violations")
-	private String[] violations;
+  @JsonProperty("payment-session")
+  private PaymentAuthorizationOutputBody paymentAuthorization;
+
+  @JsonProperty("violations")
+  private String[] violations;
 }

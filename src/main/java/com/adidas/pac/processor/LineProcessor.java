@@ -34,9 +34,9 @@ public class LineProcessor {
       JsonNode paymentSessionNode = rootJsonNode.get("payment-session");
 
       if (paymentRulesNode != null) {
-        paymentRulesProcessor.process(paymentRulesNode);
+        paymentRulesProcessor.process(mapper, paymentRulesNode);
       } else if (paymentSessionNode != null) {
-        paymentSessionProcessor.process(paymentSessionNode);
+        paymentSessionProcessor.process(mapper, paymentSessionNode);
       }
     }
   }
