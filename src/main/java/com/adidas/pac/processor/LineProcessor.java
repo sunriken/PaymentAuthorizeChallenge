@@ -1,6 +1,7 @@
 package com.adidas.pac.processor;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -27,16 +28,18 @@ public class LineProcessor {
   }
 
   public void process(String line) throws JsonParseException, JsonMappingException, IOException {
-    JsonNode rootJsonNode = mapper.readTree(line);
+    if (!Objects.isNull(line) && !line.isEmpty() && !line.isBlank()) {
+      JsonNode rootJsonNode = mapper.readTree(line);
 
-    if (rootJsonNode != null) {
-      JsonNode paymentRulesNode = rootJsonNode.get("payment-rules");
-      JsonNode paymentSessionNode = rootJsonNode.get("payment-session");
+      if (rootJsonNode != null) {
+        JsonNode paymentRulesNode = rootJsonNode.get("payment-rules");
+        JsonNode paymentSessionNode = rootJsonNode.get("payment-session");
 
-      if (paymentRulesNode != null) {
-        paymentRulesProcessor.process(mapper, paymentRulesNode);
-      } else if (paymentSessionNode != null) {
-        paymentSessionProcessor.process(mapper, paymentSessionNode);
+        if (paymentRulesNode != null) {
+          paymentRulesProcessor.process(paymentRulesNode);
+        } else if (paymentSessionNode != null) {
+          paymentSessionProcessor.process(mapper, paymentSessionNode);
+        }
       }
     }
   }

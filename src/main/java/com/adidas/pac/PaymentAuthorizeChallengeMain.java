@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import com.adidas.pac.processor.LineProcessor;
 
 public class PaymentAuthorizeChallengeMain {
-
   public static void main(String[] args) {
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     try {
@@ -18,7 +17,6 @@ public class PaymentAuthorizeChallengeMain {
         processor.process(line);
       }
     } catch (IOException ioe) {
-      System.out.println(ioe);
     }
   }
 }

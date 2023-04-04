@@ -27,7 +27,6 @@ public class PaymentSessionProcessor {
   private static final String PAYMENT_SESSION_ALREADY_INITIALIZED =
       "paymentsession-already-initialized";
   private static final String PAYMENT_RULES_NOT_INITIALIZED = "paymentrules-not-initialized";
-  private static final String JSON_PROCESSING_ERROR = "json-processing-error";
   private static final String OTHER_ERROR = "other-error";
 
   private PaymentSessionProcessor() {}
@@ -42,46 +41,49 @@ public class PaymentSessionProcessor {
   public void process(ObjectMapper mapper, JsonNode paymentSessionNode) {
     List<String> violations = new ArrayList<String>();
     PaymentSession paymentSession = null;
-    try {
-      JsonNode ccNode = paymentSessionNode.get("cc");
-      if (ccNode != null) {
-        paymentAuthorizationProcessor.process(mapper, paymentSessionNode);
-      } else {
+
+    JsonNode ccNode = paymentSessionNode.get("cc");
+    if (ccNode != null) {
+      paymentAuthorizationProcessor.process(mapper, paymentSessionNode);
+    } else {
+      try {
         if (paymentRulesDataStructure.get() == null) {
           violations.add(PAYMENT_RULES_NOT_INITIALIZED);
         }
-        paymentSession = mapper.treeToValue(paymentSessionNode, PaymentSession.class);
-        paymentSession.setAvailableLimit(paymentRulesDataStructure.get().getMaxLimit());
+
         if (violations.size() == 0) {
+          paymentSession =
+              PaymentSession.builder()
+                  .paymentId(paymentSessionNode.get("payment-id").asLong())
+                  .availableLimit(paymentRulesDataStructure.get().getMaxLimit())
+                  .build();
           paymentSessionDataStructure.save(paymentSession);
         }
+      } catch (ExistingElementException e) {
+        violations.add(PAYMENT_SESSION_ALREADY_INITIALIZED);
+      } catch (Exception e) {
+        violations.add(OTHER_ERROR);
       }
-    } catch (JsonProcessingException e) {
-      violations.add(JSON_PROCESSING_ERROR);
-    } catch (ExistingElementException e) {
-      violations.add(PAYMENT_SESSION_ALREADY_INITIALIZED);
-    } catch (Exception e) {
-      violations.add(OTHER_ERROR);
-    }
-    try {
-      String[] violationsArray = new String[violations.size()];
-      violationsArray = violations.toArray(violationsArray);
-      PaymentSessionOutput output =
-          PaymentSessionOutput.builder()
-              .paymentSession(
-                  PaymentSessionOutputBody.builder()
-                      .availableLimit(
-                          !Objects.isNull(paymentRulesDataStructure.get())
-                              ? paymentRulesDataStructure.get().getMaxLimit()
-                              : null)
-                      .paymentId(
-                          !Objects.isNull(paymentSession) ? paymentSession.getPaymentId() : null)
-                      .build())
-              .violations(violationsArray)
-              .build();
-      String out = mapper.writeValueAsString(output);
-      System.out.println(out);
-    } catch (JsonProcessingException f) {
+      try {
+        String[] violationsArray = new String[violations.size()];
+        violationsArray = violations.toArray(violationsArray);
+        PaymentSessionOutput output =
+            PaymentSessionOutput.builder()
+                .paymentSession(
+                    PaymentSessionOutputBody.builder()
+                        .availableLimit(
+                            !Objects.isNull(paymentRulesDataStructure.get())
+                                ? paymentRulesDataStructure.get().getMaxLimit()
+                                : null)
+                        .paymentId(
+                            !Objects.isNull(paymentSession) ? paymentSession.getPaymentId() : null)
+                        .build())
+                .violations(violationsArray)
+                .build();
+        String out = mapper.writeValueAsString(output);
+        System.out.println(out);
+      } catch (JsonProcessingException f) {
+      }
     }
   }
 }

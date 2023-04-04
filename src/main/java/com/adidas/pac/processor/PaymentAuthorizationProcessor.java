@@ -1,6 +1,8 @@
 package com.adidas.pac.processor;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -24,10 +26,12 @@ public class PaymentAuthorizationProcessor {
   private static final String INSUFFICIENT_LIMIT = "insufficient-limit";
   private static final String HIGH_FREQUENCY_SMALL_INTERVAL = "high-frequency-small-interval";
   private static final String DOUBLED_TRANSACTION = "doubled-transaction";
-  private static final String JSON_PROCESSING_ERROR = "json-processing-error";
+  private static final String UNKNOWN_ERROR = "unknown-error";
   private static final long MAX_MINUTES_BEFORE = 2;
   private static final long MAX_TRANSACTIONS_BEFORE = 3;
   private static final long MAX_SIMILAR_TRANSACTIONS = 1;
+  private static final DateTimeFormatter formatter =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneId.systemDefault());
 
   private static PaymentAuthorizationProcessor instance;
 
@@ -53,7 +57,13 @@ public class PaymentAuthorizationProcessor {
     ArrayList<String> violations = new ArrayList<>();
     try {
       paymentAuthorization =
-          mapper.treeToValue(paymentAuthorizationNode, PaymentAuthorization.class);
+          PaymentAuthorization.builder()
+              .paymentId(paymentAuthorizationNode.get("payment-id").asLong())
+              .cc(paymentAuthorizationNode.get("cc").asText())
+              .amount(paymentAuthorizationNode.get("amount").asLong())
+              .time(asDate(paymentAuthorizationNode.get("time").asText()))
+              .build();
+
       if (paymentAuthorization != null) {
         PaymentRules rules = paymentRulesDataStructure.get();
         if (rules == null || rules.getMaxLimit() == null) {
@@ -75,10 +85,14 @@ public class PaymentAuthorizationProcessor {
         final LocalDateTime paymentDate = paymentAuthorization.getTime();
         long previousTransactionsAmount =
             paymentAuthorizationDataStructure.list().stream()
-                .filter(p -> p.getTime().isBefore(paymentDate.minusMinutes(MAX_MINUTES_BEFORE)))
+                .filter(
+                    p ->
+                        ((p.getTime().isAfter(paymentDate.minusMinutes(MAX_MINUTES_BEFORE))
+                                && p.getTime().isBefore(paymentDate))
+                            || p.getTime().equals(paymentDate)))
                 .count();
 
-        if (previousTransactionsAmount + 1 > MAX_TRANSACTIONS_BEFORE) {
+        if ((previousTransactionsAmount + 1) > MAX_TRANSACTIONS_BEFORE) {
           violations.add(HIGH_FREQUENCY_SMALL_INTERVAL);
         }
 
@@ -86,7 +100,13 @@ public class PaymentAuthorizationProcessor {
         final String cc = paymentAuthorization.getCc();
         long similarTransactions =
             paymentAuthorizationDataStructure.list().stream()
-                .filter(p -> p.getAmount().equals(amount) && p.getCc().equals(cc))
+                .filter(
+                    p ->
+                        p.getAmount().equals(amount)
+                            && p.getCc().equals(cc)
+                            && ((p.getTime().isAfter(paymentDate.minusMinutes(MAX_MINUTES_BEFORE))
+                                    && p.getTime().isBefore(paymentDate))
+                                || p.getTime().equals(paymentDate)))
                 .count();
 
         if (similarTransactions > MAX_SIMILAR_TRANSACTIONS) {
@@ -101,10 +121,10 @@ public class PaymentAuthorizationProcessor {
                   session.get().getAvailableLimit() - paymentAuthorization.getAmount());
         }
       }
-    } catch (JsonProcessingException e) {
-      violations.add(JSON_PROCESSING_ERROR);
     } catch (ExistingElementException e) {
       violations.add(DOUBLED_TRANSACTION);
+    } catch (Exception e) {
+      violations.add(UNKNOWN_ERROR);
     }
 
     try {
@@ -123,6 +143,12 @@ public class PaymentAuthorizationProcessor {
       String outputLine = mapper.writeValueAsString(output);
       System.out.println(outputLine);
     } catch (JsonProcessingException e) {
+
     }
+  }
+
+  private LocalDateTime asDate(String dateString) {
+    LocalDateTime date = LocalDateTime.parse(dateString, formatter);
+    return date;
   }
 }

@@ -2,9 +2,7 @@ package com.adidas.pac.processor;
 
 import com.adidas.pac.model.input.PaymentRules;
 import com.adidas.pac.persistence.PaymentRulesDataStructure;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class PaymentRulesProcessor {
 
@@ -21,12 +19,13 @@ public class PaymentRulesProcessor {
     return instance;
   }
 
-  public void process(ObjectMapper mapper, JsonNode paymentRulesNode) {
+  public void process(JsonNode paymentRulesNode) {
     try {
-      PaymentRules paymentRules = mapper.treeToValue(paymentRulesNode, PaymentRules.class);
+      Long maxLimit = paymentRulesNode.get("max-limit").asLong();
+      PaymentRules paymentRules = PaymentRules.builder().maxLimit(maxLimit).build();
       paymentRulesDataStructure.save(paymentRules);
-    } catch (JsonProcessingException e) {
     } catch (Exception e) {
+
     }
   }
 }
