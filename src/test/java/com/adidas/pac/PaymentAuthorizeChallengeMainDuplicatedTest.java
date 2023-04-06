@@ -51,8 +51,8 @@ public class PaymentAuthorizeChallengeMainDuplicatedTest {
     String data =
         "{\"payment-rules\": {\"max-limit\": 100}}\r\n"
             + "{\"payment-session\": {\"payment-id\": 89087632}}\r\n"
-            + "{\"payment-session\": {\"payment-id\": 89087632, \"cc\": \"visa\", \"amount\": 90, \"time\": \"2022-02-13T10:00:00.000Z\"}}\r\n"
-            + "{\"payment-session\": {\"payment-id\": 89087632, \"cc\": \"visa\", \"amount\": 90, \"time\": \"2022-02-13T10:01:00.000Z\"}}\r\n";
+            + "{\"payment-session\": {\"payment-id\": 89087632, \"cc\": \"mastercard\", \"amount\": 10, \"time\": \"2022-02-13T10:00:00.000Z\"}}\r\n"
+            + "{\"payment-session\": {\"payment-id\": 89087632, \"cc\": \"mastercard\", \"amount\": 10, \"time\": \"2022-02-13T10:00:00.000Z\"}}\r\n";
 
     InputStream stdin = System.in;
     try {
