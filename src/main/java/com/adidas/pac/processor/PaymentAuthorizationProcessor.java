@@ -66,63 +66,62 @@ public class PaymentAuthorizationProcessor {
               .time(asDate(paymentAuthorizationNode.get("time").asText()))
               .build();
 
-      if (paymentAuthorization != null) {
-        PaymentRules rules = paymentRulesDataStructure.get();
-        if (rules == null || rules.getMaxLimit() == null) {
-          violations.add(PAYMENT_RULES_NOT_INITIALIZED);
-        }
+      PaymentRules rules = paymentRulesDataStructure.get();
+      if (rules == null || rules.getMaxLimit() == null) {
+        violations.add(PAYMENT_RULES_NOT_INITIALIZED);
+      }
 
-        final Long paymentId = paymentAuthorization.getPaymentId();
-        session =
-            paymentSessionDataStructure.list().stream()
-                .filter(p -> paymentId.equals(p.getPaymentId()))
-                .findAny();
-        if (!session.isPresent()) {
-          violations.add(PAYMENT_SESSION_NOT_INITIALIZED);
-        } else {
-          if (paymentAuthorization.getAmount() > session.get().getAvailableLimit()) {
-            violations.add(INSUFFICIENT_LIMIT);
-          }
-        }
-        final LocalDateTime paymentDate = paymentAuthorization.getTime();
-        long previousTransactionsAmount =
-            paymentAuthorizationDataStructure.list().stream()
-                .filter(
-                    p ->
-                        ((p.getTime().isAfter(paymentDate.minusMinutes(MAX_MINUTES_BEFORE))
-                                && p.getTime().isBefore(paymentDate))
-                            || p.getTime().equals(paymentDate)))
-                .count();
-
-        if ((previousTransactionsAmount + 1) > MAX_TRANSACTIONS_BEFORE) {
-          violations.add(HIGH_FREQUENCY_SMALL_INTERVAL);
-        }
-
-        final Long amount = paymentAuthorization.getAmount();
-        final String cc = paymentAuthorization.getCc();
-        long similarTransactions =
-            paymentAuthorizationDataStructure.list().stream()
-                .filter(
-                    p ->
-                        p.getAmount().equals(amount)
-                            && p.getCc().equals(cc)
-                            && ((p.getTime().isAfter(paymentDate.minusMinutes(MAX_MINUTES_BEFORE))
-                                    && p.getTime().isBefore(paymentDate))
-                                || p.getTime().equals(paymentDate)))
-                .count();
-
-        if (similarTransactions > MAX_SIMILAR_TRANSACTIONS) {
-          violations.add(DOUBLED_TRANSACTION);
-        }
-
-        if (violations.isEmpty()) {
-          paymentAuthorizationDataStructure.save(paymentAuthorization);
-          session
-              .get()
-              .setAvailableLimit(
-                  session.get().getAvailableLimit() - paymentAuthorization.getAmount());
+      final Long paymentId = paymentAuthorization.getPaymentId();
+      session =
+          paymentSessionDataStructure.list().stream()
+              .filter(p -> paymentId.equals(p.getPaymentId()))
+              .findAny();
+      if (!session.isPresent()) {
+        violations.add(PAYMENT_SESSION_NOT_INITIALIZED);
+      } else {
+        if (paymentAuthorization.getAmount() > session.get().getAvailableLimit()) {
+          violations.add(INSUFFICIENT_LIMIT);
         }
       }
+      final LocalDateTime paymentDate = paymentAuthorization.getTime();
+      long previousTransactionsAmount =
+          paymentAuthorizationDataStructure.list().stream()
+              .filter(
+                  p ->
+                      ((p.getTime().isAfter(paymentDate.minusMinutes(MAX_MINUTES_BEFORE))
+                              && p.getTime().isBefore(paymentDate))
+                          || p.getTime().equals(paymentDate)))
+              .count();
+
+      if ((previousTransactionsAmount + 1) > MAX_TRANSACTIONS_BEFORE) {
+        violations.add(HIGH_FREQUENCY_SMALL_INTERVAL);
+      }
+
+      final Long amount = paymentAuthorization.getAmount();
+      final String cc = paymentAuthorization.getCc();
+      long similarTransactions =
+          paymentAuthorizationDataStructure.list().stream()
+              .filter(
+                  p ->
+                      p.getAmount().equals(amount)
+                          && p.getCc().equals(cc)
+                          && ((p.getTime().isAfter(paymentDate.minusMinutes(MAX_MINUTES_BEFORE))
+                                  && p.getTime().isBefore(paymentDate))
+                              || p.getTime().equals(paymentDate)))
+              .count();
+
+      if (similarTransactions > MAX_SIMILAR_TRANSACTIONS) {
+        violations.add(DOUBLED_TRANSACTION);
+      }
+
+      if (violations.isEmpty()) {
+        paymentAuthorizationDataStructure.save(paymentAuthorization);
+        session
+            .get()
+            .setAvailableLimit(
+                session.get().getAvailableLimit() - paymentAuthorization.getAmount());
+      }
+
     } catch (ExistingElementException e) {
       violations.add(DOUBLED_TRANSACTION);
     } catch (Exception e) {

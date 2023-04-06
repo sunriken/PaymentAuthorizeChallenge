@@ -21,11 +21,12 @@ public class PaymentRulesProcessor {
 
   public void process(JsonNode paymentRulesNode) {
     try {
-      Long maxLimit = paymentRulesNode.get("max-limit").asLong();
+      JsonNode maxLimitNode = paymentRulesNode.get("max-limit");
+      Long maxLimit =
+          (maxLimitNode == null || maxLimitNode.isNull()) ? null : maxLimitNode.asLong();
       PaymentRules paymentRules = PaymentRules.builder().maxLimit(maxLimit).build();
       paymentRulesDataStructure.save(paymentRules);
     } catch (Exception e) {
-
     }
   }
 }
